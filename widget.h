@@ -25,6 +25,8 @@ private slots:
 
     void on_renameButton_clicked();
 
+    void showSuffixToolTip();
+
 private:
     Ui::Widget *ui;
     bool isFirstTimeAdd = true;

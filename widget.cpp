@@ -1,4 +1,7 @@
 #include <QStandardPaths>
+#include <QRegularExpression>
+#include <QRegularExpressionValidator>
+#include <QToolTip>
 
 #include "widget.h"
 #include "ui_widget.h"
@@ -7,7 +10,6 @@ Widget::Widget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Widget)
 {
-
     ui->setupUi(this);
     this->setWindowTitle("重命名工具");
 
@@ -24,11 +26,22 @@ Widget::Widget(QWidget *parent)
 
     ui->normalRadioButton->setChecked(true);
     isFirstTimeAdd = true;
+
+    ui->suffixLineEdit->setPlaceholderText("添加优先于修改，无需包含\".\"");
+    QRegularExpression regExp("[^\\\\/:*?\"<>|]+");
+    QRegularExpressionValidator *regExpVal = new QRegularExpressionValidator();
+    regExpVal->setRegularExpression(regExp);
+    ui->suffixLineEdit->setValidator(regExpVal);
+    connect(ui->suffixLineEdit, &QLineEdit::inputRejected, this, &Widget::showSuffixToolTip);
+}
+
+void Widget::showSuffixToolTip()
+{
+    QToolTip::showText(ui->suffixLineEdit->mapToGlobal(QPoint()), R"(后缀名包含非法字符 \ / : * ? " < > |)");
 }
 
 QString Widget::getNewName(QString source)
 {
-
     QFileInfo fileInfo(source);
     QString sourceFileName = fileInfo.fileName();
     QString dest = fileInfo.dir().filePath(sourceFileName);
@@ -52,6 +65,19 @@ QString Widget::getNewName(QString source)
             dest = fileInfo.dir().filePath(sourceFileName.replace(regex, output));
         }
     }
+
+    QString suffix = ui->suffixLineEdit->text();
+    if (!suffix.isEmpty() and ui->addSuffixCheckBox->isChecked())
+    {
+        QFileInfo fileInfo(dest);
+        dest = fileInfo.absolutePath() + "/" + fileInfo.completeBaseName() + "." + fileInfo.suffix() + "." + ui->suffixLineEdit->text();
+    }
+    else if (!suffix.isEmpty() and ui->modifySuffixCheckBox->isChecked())
+    {
+        QFileInfo fileInfo(dest);
+        dest = fileInfo.absolutePath() + "/" + fileInfo.completeBaseName() + "." + ui->suffixLineEdit->text();
+    }
+
     return dest;
 }
 
@@ -97,11 +123,21 @@ void Widget::on_renameButton_clicked()
 {
     for (int row = 0; row < ui->fileTableWidget->rowCount(); ++row) {
         // 重命名
-        QString result = "未修改";
-        QTableWidgetItem *item = ui->fileTableWidget->item(row, 2);
-        if (item)
+        QTableWidgetItem *sourceItem = ui->fileTableWidget->item(row, 0);
+        QTableWidgetItem *destItem = ui->fileTableWidget->item(row, 1);
+        QTableWidgetItem *resultItem = ui->fileTableWidget->item(row, 2);
+        if (sourceItem and destItem and resultItem)
         {
-            item->setText(result);
+            bool result = QFile::rename(sourceItem->text(), destItem->text());
+            // qDebug() << "src: " << sourceItem->text() << ", dst " << destItem->text();
+            if (result)
+            {
+                resultItem->setText("修改成功");
+            }
+            else
+            {
+                resultItem->setText("修改失败");
+            }
         }
     }
 }

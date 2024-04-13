@@ -41,8 +41,14 @@
      <height>23</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string/>
+   </property>
+   <property name="whatsThis">
+    <string/>
+   </property>
    <property name="text">
-    <string>添加</string>
+    <string>添加文件</string>
    </property>
   </widget>
   <widget class="QLabel" name="ruleLabel">
@@ -58,33 +64,7 @@
     <string>规则</string>
    </property>
   </widget>
-  <widget class="QRadioButton" name="normalRadioButton">
-   <property name="geometry">
-    <rect>
-     <x>290</x>
-     <y>360</y>
-     <width>95</width>
-     <height>19</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>普通模式</string>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="regExpRadioButton">
-   <property name="geometry">
-    <rect>
-     <x>290</x>
-     <y>390</y>
-     <width>95</width>
-     <height>19</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>正则模式</string>
-   </property>
-  </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -121,38 +101,97 @@
     <rect>
      <x>40</x>
      <y>350</y>
-     <width>179</width>
-     <height>54</height>
+     <width>181</width>
+     <height>83</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
-       <widget class="QLabel" name="label">
+       <widget class="QRadioButton" name="normalRadioButton">
         <property name="text">
-         <string>把      </string>
+         <string>普通模式</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="inputLineEdit"/>
+       <widget class="QRadioButton" name="regExpRadioButton">
+        <property name="text">
+         <string>正则模式</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QLabel" name="label_2">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>把      </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="inputLineEdit"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>替换成</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="outputLineEdit"/>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>340</x>
+     <y>340</y>
+     <width>176</width>
+     <height>50</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_4">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <widget class="QCheckBox" name="addSuffixCheckBox">
         <property name="text">
-         <string>替换成</string>
+         <string>添加后缀名</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="outputLineEdit"/>
+       <widget class="QCheckBox" name="modifySuffixCheckBox">
+        <property name="text">
+         <string>修改后缀名</string>
+        </property>
+       </widget>
       </item>
      </layout>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="suffixLineEdit">
+      <property name="whatsThis">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
