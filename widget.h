@@ -4,6 +4,10 @@
 #include <QWidget>
 #include <QTableWidget>
 #include <QFileDialog>
+#include <QStandardPaths>
+#include <QRegularExpression>
+#include <QRegularExpressionValidator>
+#include <QToolTip>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -17,7 +21,7 @@ class Widget : public QWidget
 
 public:
     Widget(QWidget *parent = nullptr);
-    QString getNewName(QString source);
+    QString getNewName(QString source, const int row);
     ~Widget();
 
 private slots:
@@ -27,8 +31,24 @@ private slots:
 
     void showSuffixToolTip();
 
+    void on_clearFileButton_clicked();
+
+    void on_normalRadioButton_clicked();
+
+    void on_regExpRadioButton_clicked();
+
+    void on_addSuffixCheckBox_clicked();
+
+    void on_modifySuffixCheckBox_clicked();
+
 private:
+    void fileTableInit();
+    void replacePartInit();
+    void suffixPartInit();
+    void addIndexPartInit();
+    void refreshData();
+
     Ui::Widget *ui;
-    bool isFirstTimeAdd = true;
+    bool isFirstRun = true;
 };
 #endif // WIDGET_H
