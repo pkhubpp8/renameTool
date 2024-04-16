@@ -29,7 +29,9 @@ private slots:
 
     void on_renameButton_clicked();
 
-    void showSuffixToolTip();
+    void showSuffixLineEditToolTip();
+
+    void showAddIndexToolTip();
 
     void on_clearFileButton_clicked();
 
@@ -40,6 +42,20 @@ private slots:
     void on_addSuffixCheckBox_clicked();
 
     void on_modifySuffixCheckBox_clicked();
+
+    void on_suffixLineEdit_textChanged(const QString &arg1);
+
+    void on_addIndexRuleLineEdit_textChanged(const QString &arg1);
+
+    void on_inputLineEdit_textChanged(const QString &arg1);
+
+    void on_outputLineEdit_textChanged(const QString &arg1);
+
+    void on_startSpinBox_textChanged(const QString &arg1);
+
+    void on_stepSpinBox_textChanged(const QString &arg1);
+
+    void on_numOfDigitSpinBox_textChanged(const QString &arg1);
 
 private:
     void fileTableInit();

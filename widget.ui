@@ -58,7 +58,7 @@
        </size>
       </property>
       <attribute name="horizontalHeaderDefaultSectionSize">
-       <number>220</number>
+       <number>230</number>
       </attribute>
      </widget>
     </item>
@@ -300,6 +300,19 @@
      </layout>
     </item>
    </layout>
+  </widget>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>490</y>
+     <width>91</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>重命名校验</string>
+   </property>
   </widget>
  </widget>
  <resources/>

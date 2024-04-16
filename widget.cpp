@@ -20,7 +20,7 @@ Widget::Widget(QWidget *parent)
 void Widget::fileTableInit()
 {
     QStringList horizontalLabels;
-    horizontalLabels << "原始文件名" << "目标文件名" << "结果";
+    horizontalLabels << "原始文件绝对路径" << "目标文件名" << "结果";
     ui->fileTableWidget->setColumnCount(horizontalLabels.size());
     ui->fileTableWidget->setHorizontalHeaderLabels(horizontalLabels);   // 设置行标签
 
@@ -29,6 +29,7 @@ void Widget::fileTableInit()
     // ui->fileTableWidget->setRowCount(verticalLabels.size());
     // ui->fileTableWidget->setVerticalHeaderLabels(verticalLabels);
     ui->fileTableWidget->verticalHeader()->setVisible(false);           // 隐藏列标签
+    ui->fileTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 }
 
 void Widget::replacePartInit()
@@ -43,7 +44,7 @@ void Widget::suffixPartInit()
     QRegularExpressionValidator *regExpVal = new QRegularExpressionValidator();
     regExpVal->setRegularExpression(regExp);
     ui->suffixLineEdit->setValidator(regExpVal);
-    connect(ui->suffixLineEdit, &QLineEdit::inputRejected, this, &Widget::showSuffixToolTip);
+    connect(ui->suffixLineEdit, &QLineEdit::inputRejected, this, &Widget::showSuffixLineEditToolTip);
 }
 
 void Widget::addIndexPartInit()
@@ -60,11 +61,24 @@ void Widget::addIndexPartInit()
 
     ui->numOfDigitSpinBox->setMinimum(1);
     ui->numOfDigitSpinBox->setMaximum(1024);
+
+
+    QRegularExpression regExp("[^\\\\/:\"<>|]+");
+    QRegularExpressionValidator *regExpVal = new QRegularExpressionValidator();
+    regExpVal->setRegularExpression(regExp);
+    ui->addIndexRuleLineEdit->setValidator(regExpVal);
+    connect(ui->addIndexRuleLineEdit, &QLineEdit::inputRejected, this, &Widget::showAddIndexToolTip);
 }
 
-void Widget::showSuffixToolTip()
+void Widget::showAddIndexToolTip()
 {
-    QToolTip::showText(ui->suffixLineEdit->mapToGlobal(QPoint()), R"(后缀名包含非法字符 \ / : * ? " < > |)");
+    QToolTip::showText(ui->addIndexRuleLineEdit->mapToGlobal(QPoint()), R"(后缀名不能包含非法字符 \ / : " < > |)");
+}
+
+
+void Widget::showSuffixLineEditToolTip()
+{
+    QToolTip::showText(ui->suffixLineEdit->mapToGlobal(QPoint()), R"(后缀名不能包含非法字符 \ / : * ? " < > |)");
 }
 
 QString Widget::getNewName(QString source, const int row)
@@ -75,34 +89,55 @@ QString Widget::getNewName(QString source, const int row)
 
     if (ui->normalRadioButton->isChecked())
     {
+        QFileInfo tmpDstFileInfo(dest);
         QString input = ui->inputLineEdit->text();
         if (!input.isEmpty())
         {
             QString output = ui->outputLineEdit->text();
-            dest = fileInfo.dir().filePath(sourceFileName.replace(input, output));
+            dest = tmpDstFileInfo.dir().filePath(sourceFileName.replace(input, output));
+
+            qDebug() << "normal replace, dest: " << dest;
         }
     }
     else if (ui->regExpRadioButton->isChecked())
     {
+        QFileInfo tmpDstFileInfo(dest);
         QString input = ui->inputLineEdit->text();
         if (!input.isEmpty())
         {
             QRegularExpression regex(input);
             QString output = ui->outputLineEdit->text();
-            dest = fileInfo.dir().filePath(sourceFileName.replace(regex, output));
+            dest = tmpDstFileInfo.dir().filePath(sourceFileName.replace(regex, output));
+
+            // todo: 分组替换
+
+            qDebug() << "regular replace, dest: " << dest;
         }
     }
 
     QString suffix = ui->suffixLineEdit->text();
     if (!suffix.isEmpty() and ui->addSuffixCheckBox->isChecked())
     {
-        QFileInfo fileInfo(dest);
-        dest = fileInfo.dir().filePath(fileInfo.completeBaseName() + "." + fileInfo.suffix() + "." + ui->suffixLineEdit->text());
+        QFileInfo tmpDstFileInfo(dest);
+        if (tmpDstFileInfo.suffix().isEmpty())
+        {
+            dest = tmpDstFileInfo.dir().filePath(tmpDstFileInfo.completeBaseName() + "." + ui->suffixLineEdit->text());
+        }
+        else
+        {
+            dest = tmpDstFileInfo.dir().filePath(tmpDstFileInfo.completeBaseName() + "." + tmpDstFileInfo.suffix() + "." + ui->suffixLineEdit->text());
+        }
+
+        qDebug() << "suffix add, dest: " << dest;
     }
     else if (!suffix.isEmpty() and ui->modifySuffixCheckBox->isChecked())
     {
-        QFileInfo fileInfo(dest);
-        dest = fileInfo.dir().filePath(fileInfo.completeBaseName() + "." + ui->suffixLineEdit->text());
+        QFileInfo tmpDstFileInfo(dest);
+        if (!tmpDstFileInfo.suffix().isEmpty())
+        {
+            dest = tmpDstFileInfo.dir().filePath(tmpDstFileInfo.completeBaseName() + "." + ui->suffixLineEdit->text());
+        }
+        qDebug() << "suffix modify, dest: " << dest;
     }
 
     QString rule = ui->addIndexRuleLineEdit->text();
@@ -112,11 +147,11 @@ QString Widget::getNewName(QString source, const int row)
         int step = ui->stepSpinBox->value();
         int width = ui->numOfDigitSpinBox->value();
         int currentIndex = start + row * step;
-        QString indexStr = QString("%1").arg(currentIndex, width);
+        QString indexStr = QString("%1").arg(currentIndex, width, 10, QChar('0'));
         qDebug() << "rule: " << rule;
         qDebug() << "当前文件是第" << row << "行，index为" << currentIndex << "编号为：" << indexStr;
 
-        QFileInfo fileInfo(dest);
+        QFileInfo tmpDstFileInfo(dest);
         QString tmp = rule;
         while (tmp.contains(QString("?")))
         {
@@ -124,13 +159,14 @@ QString Widget::getNewName(QString source, const int row)
         }
         while (tmp.contains(QString("*")))
         {
-            tmp.replace(QString("*"), fileInfo.completeBaseName());
+            tmp.replace(QString("*"), tmpDstFileInfo.completeBaseName());
         }
         qDebug() << "tmp: " << tmp;
-        dest = fileInfo.dir().filePath(fileInfo.suffix().isEmpty() ? tmp : (tmp + "." + fileInfo.suffix()));
+        dest = tmpDstFileInfo.dir().filePath(tmpDstFileInfo.suffix().isEmpty() ? tmp : (tmp + "." + tmpDstFileInfo.suffix()));
     }
 
-    return dest;
+    QFileInfo dstFile(dest);
+    return dstFile.fileName();
 }
 
 Widget::~Widget()
@@ -144,6 +180,7 @@ void Widget::on_addFileButton_clicked()
     QStringList files;
     if (isFirstRun)
     {
+        isFirstRun = false;
         QString desktopPath = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
         files = QFileDialog::getOpenFileNames(nullptr, "选择文件", desktopPath);
     }
@@ -151,8 +188,7 @@ void Widget::on_addFileButton_clicked()
     {
         files = QFileDialog::getOpenFileNames(nullptr, "选择文件");
     }
-    isFirstRun = false;
-    // for (auto& file: files)
+
     for (int i = 0; i < files.size(); i++)
     {
         if (!files[i].isEmpty()) {
@@ -180,7 +216,8 @@ void Widget::on_renameButton_clicked()
         QTableWidgetItem *resultItem = ui->fileTableWidget->item(row, 2);
         if (sourceItem and destItem and resultItem)
         {
-            bool result = QFile::rename(sourceItem->text(), destItem->text());
+            QFileInfo srcFile(sourceItem->text());
+            bool result = QFile::rename(sourceItem->text(), srcFile.dir().filePath(destItem->text()));
             // qDebug() << "src: " << sourceItem->text() << ", dst " << destItem->text();
             if (result)
             {
@@ -192,32 +229,6 @@ void Widget::on_renameButton_clicked()
             }
         }
     }
-}
-
-
-void Widget::on_clearFileButton_clicked()
-{
-    refreshData();
-}
-
-void Widget::on_normalRadioButton_clicked()
-{
-    refreshData();
-}
-
-void Widget::on_regExpRadioButton_clicked()
-{
-    refreshData();
-}
-
-void Widget::on_addSuffixCheckBox_clicked()
-{
-    refreshData();
-}
-
-void Widget::on_modifySuffixCheckBox_clicked()
-{
-    refreshData();
 }
 
 void Widget::refreshData()
@@ -234,3 +245,79 @@ void Widget::refreshData()
         }
     }
 }
+
+void Widget::on_clearFileButton_clicked()
+{
+    qDebug() << __func__;
+    refreshData();
+}
+
+void Widget::on_normalRadioButton_clicked()
+{
+    qDebug() << __func__;
+    refreshData();
+}
+
+void Widget::on_regExpRadioButton_clicked()
+{
+    qDebug() << __func__;
+    refreshData();
+}
+
+void Widget::on_addSuffixCheckBox_clicked()
+{
+    qDebug() << __func__;
+    refreshData();
+}
+
+void Widget::on_modifySuffixCheckBox_clicked()
+{
+    qDebug() << __func__;
+    refreshData();
+}
+
+void Widget::on_suffixLineEdit_textChanged(const QString &arg1)
+{
+    qDebug() << __func__ << ": " << arg1;
+    refreshData();
+}
+
+void Widget::on_addIndexRuleLineEdit_textChanged(const QString &arg1)
+{
+    qDebug() << __func__ << ": " << arg1;
+    refreshData();
+}
+
+void Widget::on_inputLineEdit_textChanged(const QString &arg1)
+{
+    qDebug() << __func__ << ": " << arg1;
+    refreshData();
+}
+
+void Widget::on_outputLineEdit_textChanged(const QString &arg1)
+{
+    qDebug() << __func__ << ": " << arg1;
+    refreshData();
+}
+
+
+void Widget::on_startSpinBox_textChanged(const QString &arg1)
+{
+    qDebug() << __func__ << ": " << arg1;
+    refreshData();
+}
+
+
+void Widget::on_stepSpinBox_textChanged(const QString &arg1)
+{
+    qDebug() << __func__ << ": " << arg1;
+    refreshData();
+}
+
+
+void Widget::on_numOfDigitSpinBox_textChanged(const QString &arg1)
+{
+    qDebug() << __func__ << ": " << arg1;
+    refreshData();
+}
+
