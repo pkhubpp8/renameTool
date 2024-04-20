@@ -1,4 +1,7 @@
+#include <QMimeData>
+
 #include "widget.h"
+#include "qmimedata.h"
 #include "ui_widget.h"
 
 Widget::Widget(QWidget *parent)
@@ -15,6 +18,7 @@ Widget::Widget(QWidget *parent)
     isFirstRun_ = true;
 
     // this->setStyleSheet("QToolTip { color: #ffffff; background-color: #666666; border: 1px solid white; }");
+    setAcceptDrops(true);
 }
 
 void Widget::fileTableInit()
@@ -197,25 +201,9 @@ void Widget::on_addFileButton_clicked()
 
     for (int i = 0; i < files.size(); i++)
     {
-        if (!files[i].isEmpty()) {
-            auto result = observedFiles_.insert(files[i]);
-            if (result.second)
-            {
-                int row = ui->fileTableWidget->rowCount();
-                qDebug() << "Selected file:" << files[i] << ", insert to row " << row;
-                ui->fileTableWidget->insertRow(row);
-
-                ui->fileTableWidget->setItem(row, 0, new QTableWidgetItem(files[i]));
-                QString newName = getNewName(files[i], row);
-                ui->fileTableWidget->setItem(row, 1, new QTableWidgetItem(newName));
-                ui->fileTableWidget->setItem(row, 2, new QTableWidgetItem("还未执行"));
-
-                // ui->fileTableWidget->setItem(row, column, item);
-            }
-            else
-            {
-                qDebug() << "Selected file:" << files[i] << " already exists, do nothing";
-            }
+        if (!files[i].isEmpty())
+        {
+            insertToFileTable(files[i]);
         }
     }
 }
@@ -223,7 +211,8 @@ void Widget::on_addFileButton_clicked()
 
 void Widget::on_renameButton_clicked()
 {
-    for (int row = 0; row < ui->fileTableWidget->rowCount(); ++row) {
+    for (int row = 0; row < ui->fileTableWidget->rowCount(); ++row)
+    {
         // 重命名
         QTableWidgetItem *sourceItem = ui->fileTableWidget->item(row, 0);
         QTableWidgetItem *destItem = ui->fileTableWidget->item(row, 1);
@@ -247,7 +236,8 @@ void Widget::on_renameButton_clicked()
 
 void Widget::refreshData()
 {
-    for (int row = 0; row < ui->fileTableWidget->rowCount(); ++row) {
+    for (int row = 0; row < ui->fileTableWidget->rowCount(); ++row)
+    {
         // 重命名
         QTableWidgetItem *sourceItem = ui->fileTableWidget->item(row, 0);
         QTableWidgetItem *destItem = ui->fileTableWidget->item(row, 1);
@@ -402,3 +392,42 @@ void Widget::on_rmFileButton_clicked()
     }
 }
 
+void Widget::dragEnterEvent(QDragEnterEvent *event){
+    if (event->mimeData()->hasUrls()) {
+        event->acceptProposedAction(); // 接受拖放事件
+    }
+}
+
+void Widget::dropEvent(QDropEvent *event){
+    const QMimeData *mimeData = event->mimeData();
+    if (mimeData->hasUrls())
+    {
+        QList<QUrl> urlList = mimeData->urls();
+        for (const QUrl &url : urlList)
+        {
+            QString filePath = url.toLocalFile(); // 获取文件路径
+            insertToFileTable(filePath);
+        }
+        event->acceptProposedAction();
+    }
+}
+
+void Widget::insertToFileTable(QString& filePath)
+{
+    auto result = observedFiles_.insert(filePath);
+    if (result.second)
+    {
+        int row = ui->fileTableWidget->rowCount();
+        qDebug() << "insert file:" << filePath << ", insert to row " << row;
+        ui->fileTableWidget->insertRow(row);
+
+        ui->fileTableWidget->setItem(row, 0, new QTableWidgetItem(filePath));
+        QString newName = getNewName(filePath, row);
+        ui->fileTableWidget->setItem(row, 1, new QTableWidgetItem(newName));
+        ui->fileTableWidget->setItem(row, 2, new QTableWidgetItem("还未执行"));
+    }
+    else
+    {
+        qDebug() << "insert file:" << filePath << " already exists, do nothing";
+    }
+}

@@ -8,6 +8,8 @@
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
 #include <QToolTip>
+#include <QDropEvent>
+
 #include <set>
 
 QT_BEGIN_NAMESPACE
@@ -64,12 +66,17 @@ private slots:
 
     void on_rmFileButton_clicked();
 
+protected:
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dropEvent(QDropEvent *event);
+
 private:
     void fileTableInit();
     void replacePartInit();
     void suffixPartInit();
     void addIndexPartInit();
     void refreshData();
+    void insertToFileTable(QString& filePath);
 
     Ui::Widget *ui;
     bool isFirstRun_ = true;
