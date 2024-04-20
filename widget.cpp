@@ -220,15 +220,27 @@ void Widget::on_renameButton_clicked()
         if (sourceItem and destItem and resultItem)
         {
             QFileInfo srcFile(sourceItem->text());
-            bool result = QFile::rename(sourceItem->text(), srcFile.dir().filePath(destItem->text()));
-            // qDebug() << "src: " << sourceItem->text() << ", dst " << destItem->text();
-            if (result)
+            if (sourceItem->text() == srcFile.dir().filePath(destItem->text()))
             {
-                resultItem->setText("修改成功");
+                resultItem->setText("无需修改");
+                continue;
+            }
+            if (QFile::exists(srcFile.dir().filePath(destItem->text())))
+            {
+                resultItem->setText("文件名冲突");
             }
             else
             {
-                resultItem->setText("修改失败");
+                bool result = QFile::rename(sourceItem->text(), srcFile.dir().filePath(destItem->text()));
+                // qDebug() << "src: " << sourceItem->text() << ", dst " << destItem->text();
+                if (result)
+                {
+                    resultItem->setText("修改成功");
+                }
+                else
+                {
+                    resultItem->setText("修改失败");
+                }
             }
         }
     }
