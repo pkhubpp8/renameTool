@@ -8,6 +8,7 @@
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
 #include <QToolTip>
+#include <set>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -33,6 +34,10 @@ private slots:
 
     void showAddIndexToolTip();
 
+    void showNormalReplaceTip();
+
+    void showRegularReplaceTip();
+
     void on_clearFileButton_clicked();
 
     void on_normalRadioButton_clicked();
@@ -57,6 +62,8 @@ private slots:
 
     void on_numOfDigitSpinBox_textChanged(const QString &arg1);
 
+    void on_rmFileButton_clicked();
+
 private:
     void fileTableInit();
     void replacePartInit();
@@ -65,6 +72,7 @@ private:
     void refreshData();
 
     Ui::Widget *ui;
-    bool isFirstRun = true;
+    bool isFirstRun_ = true;
+    std::set<QString> observedFiles_;
 };
 #endif // WIDGET_H

@@ -12,7 +12,7 @@ Widget::Widget(QWidget *parent)
     replacePartInit();
     suffixPartInit();
     addIndexPartInit();
-    isFirstRun = true;
+    isFirstRun_ = true;
 
     // this->setStyleSheet("QToolTip { color: #ffffff; background-color: #666666; border: 1px solid white; }");
 }
@@ -35,6 +35,12 @@ void Widget::fileTableInit()
 void Widget::replacePartInit()
 {
     ui->normalRadioButton->setChecked(true);
+
+    QRegularExpression regExp("[^\\\\/:*?\"<>|]+");
+    QRegularExpressionValidator *regExpVal = new QRegularExpressionValidator();
+    regExpVal->setRegularExpression(regExp);
+    ui->outputLineEdit->setValidator(regExpVal);
+    connect(ui->outputLineEdit, &QLineEdit::inputRejected, this, &Widget::showNormalReplaceTip);
 }
 
 void Widget::suffixPartInit()
@@ -72,7 +78,7 @@ void Widget::addIndexPartInit()
 
 void Widget::showAddIndexToolTip()
 {
-    QToolTip::showText(ui->addIndexRuleLineEdit->mapToGlobal(QPoint()), R"(后缀名不能包含非法字符 \ / : " < > |)");
+    QToolTip::showText(ui->addIndexRuleLineEdit->mapToGlobal(QPoint()), R"(文件名不能包含非法字符 \ / : " < > |)");
 }
 
 
@@ -178,9 +184,9 @@ void Widget::on_addFileButton_clicked()
 {
 
     QStringList files;
-    if (isFirstRun)
+    if (isFirstRun_)
     {
-        isFirstRun = false;
+        isFirstRun_ = false;
         QString desktopPath = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
         files = QFileDialog::getOpenFileNames(nullptr, "选择文件", desktopPath);
     }
@@ -192,16 +198,24 @@ void Widget::on_addFileButton_clicked()
     for (int i = 0; i < files.size(); i++)
     {
         if (!files[i].isEmpty()) {
-            int row = ui->fileTableWidget->rowCount();
-            qDebug() << "Selected file:" << files[i] << ", insert to row " << row;
-            ui->fileTableWidget->insertRow(row);
+            auto result = observedFiles_.insert(files[i]);
+            if (result.second)
+            {
+                int row = ui->fileTableWidget->rowCount();
+                qDebug() << "Selected file:" << files[i] << ", insert to row " << row;
+                ui->fileTableWidget->insertRow(row);
 
-            ui->fileTableWidget->setItem(row, 0, new QTableWidgetItem(files[i]));
-            QString newName = getNewName(files[i], row);
-            ui->fileTableWidget->setItem(row, 1, new QTableWidgetItem(newName));
-            ui->fileTableWidget->setItem(row, 2, new QTableWidgetItem("还未执行"));
+                ui->fileTableWidget->setItem(row, 0, new QTableWidgetItem(files[i]));
+                QString newName = getNewName(files[i], row);
+                ui->fileTableWidget->setItem(row, 1, new QTableWidgetItem(newName));
+                ui->fileTableWidget->setItem(row, 2, new QTableWidgetItem("还未执行"));
 
-            // ui->fileTableWidget->setItem(row, column, item);
+                // ui->fileTableWidget->setItem(row, column, item);
+            }
+            else
+            {
+                qDebug() << "Selected file:" << files[i] << " already exists, do nothing";
+            }
         }
     }
 }
@@ -249,19 +263,46 @@ void Widget::refreshData()
 void Widget::on_clearFileButton_clicked()
 {
     qDebug() << __func__;
+    ui->fileTableWidget->clearContents();
+    ui->fileTableWidget->setRowCount(0);
+    observedFiles_.clear();
     refreshData();
 }
 
 void Widget::on_normalRadioButton_clicked()
 {
+    ui->outputLineEdit->setValidator(nullptr);
+    QRegularExpression regExp("[^\\\\/:*?\"<>|]+");
+    QRegularExpressionValidator *regExpVal = new QRegularExpressionValidator();
+    regExpVal->setRegularExpression(regExp);
+    ui->outputLineEdit->setValidator(regExpVal);
+    connect(ui->outputLineEdit, &QLineEdit::inputRejected, this, &Widget::showNormalReplaceTip);
+
     qDebug() << __func__;
     refreshData();
 }
 
+void Widget::showNormalReplaceTip()
+{
+    QToolTip::showText(ui->outputLineEdit->mapToGlobal(QPoint()), R"(文件名不能包含非法字符 \ / : * ? " < > |)");
+}
+
 void Widget::on_regExpRadioButton_clicked()
 {
+    ui->outputLineEdit->setValidator(nullptr);
+    QRegularExpression regExp("[^\\/:*?\"<>|]+");
+    QRegularExpressionValidator *regExpVal = new QRegularExpressionValidator();
+    regExpVal->setRegularExpression(regExp);
+    ui->outputLineEdit->setValidator(regExpVal);
+    connect(ui->outputLineEdit, &QLineEdit::inputRejected, this, &Widget::showRegularReplaceTip);
+
     qDebug() << __func__;
     refreshData();
+}
+
+void Widget::showRegularReplaceTip()
+{
+    QToolTip::showText(ui->outputLineEdit->mapToGlobal(QPoint()), R"(文件名不能包含非法字符 / : * ? " < > |)");
 }
 
 void Widget::on_addSuffixCheckBox_clicked()
@@ -319,5 +360,36 @@ void Widget::on_numOfDigitSpinBox_textChanged(const QString &arg1)
 {
     qDebug() << __func__ << ": " << arg1;
     refreshData();
+}
+
+
+void Widget::on_rmFileButton_clicked()
+{
+    QList<QTableWidgetItem *> listToRemove = ui->fileTableWidget->selectedItems();
+    std::set<int> rowToRemove;
+    for(int i = 0; i < listToRemove.count(); i++)
+    {
+        QTableWidgetItem *item = listToRemove.at(i);
+        if (item)
+        {
+            rowToRemove.insert(item->row());
+        }
+        //qDebug() << "selecteditem " << item->text();
+    }
+
+    for (auto& it: rowToRemove)
+    {
+        qDebug() << "remove row " << it;
+        QTableWidgetItem *sourceItem = ui->fileTableWidget->item(it, 0);
+        if (sourceItem)
+        {
+            observedFiles_.erase(sourceItem->text());
+        }
+        else
+        {
+            qDebug() << "warning: source item is not exist for row " << it;
+        }
+        ui->fileTableWidget->removeRow(it);
+    }
 }
 
