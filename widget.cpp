@@ -271,11 +271,16 @@ void Widget::on_clearFileButton_clicked()
 
 void Widget::on_normalRadioButton_clicked()
 {
-    ui->outputLineEdit->setValidator(nullptr);
+    if (ui->outputLineEdit->validator())
+    {
+        delete ui->outputLineEdit->validator();
+        ui->outputLineEdit->setValidator(nullptr);
+    }
     QRegularExpression regExp("[^\\\\/:*?\"<>|]+");
     QRegularExpressionValidator *regExpVal = new QRegularExpressionValidator();
     regExpVal->setRegularExpression(regExp);
     ui->outputLineEdit->setValidator(regExpVal);
+
     connect(ui->outputLineEdit, &QLineEdit::inputRejected, this, &Widget::showNormalReplaceTip);
 
     qDebug() << __func__;
@@ -289,7 +294,11 @@ void Widget::showNormalReplaceTip()
 
 void Widget::on_regExpRadioButton_clicked()
 {
-    ui->outputLineEdit->setValidator(nullptr);
+    if (ui->outputLineEdit->validator())
+    {
+        delete ui->outputLineEdit->validator();
+        ui->outputLineEdit->setValidator(nullptr);
+    }
     QRegularExpression regExp("[^\\/:*?\"<>|]+");
     QRegularExpressionValidator *regExpVal = new QRegularExpressionValidator();
     regExpVal->setRegularExpression(regExp);
