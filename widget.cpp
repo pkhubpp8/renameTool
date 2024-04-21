@@ -15,10 +15,17 @@ Widget::Widget(QWidget *parent)
     replacePartInit();
     suffixPartInit();
     addIndexPartInit();
+    comboBoxInit();
     isFirstRun_ = true;
 
     // this->setStyleSheet("QToolTip { color: #ffffff; background-color: #666666; border: 1px solid white; }");
     setAcceptDrops(true);
+}
+
+void Widget::comboBoxInit()
+{
+    ui->conflictComboBox->addItems({"不解决"});
+    ui->letterCaseComboBox->addItems({"默认不修改", "全文件名小写", "全文件名大写", "首字母小写", "首字母大写", "基础文件名小写", "基础文件名大写", "后缀名小写", "后缀名大写", "大小写反转"});
 }
 
 void Widget::fileTableInit()

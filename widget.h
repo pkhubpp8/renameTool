@@ -8,6 +8,7 @@
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
 #include <QToolTip>
+#include <QComboBox>
 #include <QDropEvent>
 
 #include <set>
@@ -71,6 +72,7 @@ protected:
     void dropEvent(QDropEvent *event);
 
 private:
+    void comboBoxInit();
     void fileTableInit();
     void replacePartInit();
     void suffixPartInit();
