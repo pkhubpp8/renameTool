@@ -1,4 +1,5 @@
 #include <QMimeData>
+#include <QDebug>
 
 #include "widget.h"
 #include "qmimedata.h"
@@ -7,6 +8,7 @@
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Widget)
+    , rHelper(nullptr)
 {
     ui->setupUi(this);
     this->setWindowTitle("重命名工具");
@@ -24,8 +26,18 @@ Widget::Widget(QWidget *parent)
 
 void Widget::comboBoxInit()
 {
-    ui->conflictComboBox->addItems({"不解决"});
-    ui->letterCaseComboBox->addItems({"默认不修改", "全文件名小写", "全文件名大写", "首字母小写", "首字母大写", "基础文件名小写", "基础文件名大写", "后缀名小写", "后缀名大写", "大小写反转"});
+    if (ui->conflictComboBox->count() == 0)
+    {
+        ui->conflictComboBox->addItems({"不解决"});
+    }
+    if (ui->letterCaseComboBox->count() == 0)
+    {
+        ui->letterCaseComboBox->addItems({"默认不修改", "小写", "大写", "首字母大写", "首字母小写", "大小写反转", "简体转繁体", "繁体转简体"}); // OpenCC
+    }
+    if (ui->caseTargetComboBox->count() == 0)
+    {
+        ui->caseTargetComboBox->addItems({"不可用"});//{"全文件名", "仅基础文件名", "仅后缀名"});
+    }
 }
 
 void Widget::fileTableInit()
@@ -46,6 +58,7 @@ void Widget::fileTableInit()
 void Widget::replacePartInit()
 {
     ui->normalRadioButton->setChecked(true);
+    ui->regularHelperButton->hide();
 
     QRegularExpression regExp("[^\\\\/:*?\"<>|]+");
     QRegularExpressionValidator *regExpVal = new QRegularExpressionValidator();
@@ -68,8 +81,8 @@ void Widget::addIndexPartInit()
 {
     ui->addIndexRuleLineEdit->setPlaceholderText("查看帮助");
     ui->addIndexRuleLineEdit->setToolTip("*表示基础文件名\n?代表编号\n\n\
-例如: image.jpg\n\
-*_?=image_<编号>.jpg");
+例如: 原始文件名image.jpg\n\
+new_*_?=new_image_<编号>.jpg");
     ui->startSpinBox->setMinimum(1);
     ui->startSpinBox->setMaximum(65535);
 
@@ -133,7 +146,7 @@ QString Widget::getNewName(QString source, const int row)
     }
 
     QString suffix = ui->suffixLineEdit->text();
-    if (!suffix.isEmpty() and ui->addSuffixCheckBox->isChecked())
+    if ((!suffix.isEmpty()) && ui->addSuffixCheckBox->isChecked())
     {
         QFileInfo tmpDstFileInfo(dest);
         if (tmpDstFileInfo.suffix().isEmpty())
@@ -147,7 +160,7 @@ QString Widget::getNewName(QString source, const int row)
 
         qDebug() << "suffix add, dest: " << dest;
     }
-    else if (!suffix.isEmpty() and ui->modifySuffixCheckBox->isChecked())
+    else if (!suffix.isEmpty() && ui->modifySuffixCheckBox->isChecked())
     {
         QFileInfo tmpDstFileInfo(dest);
         if (!tmpDstFileInfo.suffix().isEmpty())
@@ -182,6 +195,34 @@ QString Widget::getNewName(QString source, const int row)
         dest = tmpDstFileInfo.dir().filePath(tmpDstFileInfo.suffix().isEmpty() ? tmp : (tmp + "." + tmpDstFileInfo.suffix()));
     }
 
+    // letterCaseComboBox->addItems({"默认不修改", "小写", "大写", "首字母大写", "首字母小写", "大小写反转"});
+    // caseTargetComboBox->addItems({"全文件名", "仅基础文件名", "仅后缀名"});
+    QString letterCase = ui->letterCaseComboBox->currentText();
+    if (letterCase == "小写")
+    {
+
+    }
+    else if (letterCase == "大写")
+    {
+
+    }
+    else if (letterCase == "首字母大写")
+    {
+
+    }
+    else if (letterCase == "首字母小写")
+    {
+
+    }
+    else if (letterCase == "大小写反转")
+    {
+
+    }
+    else
+    {
+
+    }
+
     QFileInfo dstFile(dest);
     return dstFile.fileName();
 }
@@ -193,7 +234,6 @@ Widget::~Widget()
 
 void Widget::on_addFileButton_clicked()
 {
-
     QStringList files;
     if (isFirstRun_)
     {
@@ -224,7 +264,7 @@ void Widget::on_renameButton_clicked()
         QTableWidgetItem *sourceItem = ui->fileTableWidget->item(row, 0);
         QTableWidgetItem *destItem = ui->fileTableWidget->item(row, 1);
         QTableWidgetItem *resultItem = ui->fileTableWidget->item(row, 2);
-        if (sourceItem and destItem and resultItem)
+        if (sourceItem && destItem && resultItem)
         {
             QFileInfo srcFile(sourceItem->text());
             if (sourceItem->text() == srcFile.dir().filePath(destItem->text()))
@@ -261,7 +301,7 @@ void Widget::refreshData()
         QTableWidgetItem *sourceItem = ui->fileTableWidget->item(row, 0);
         QTableWidgetItem *destItem = ui->fileTableWidget->item(row, 1);
         QTableWidgetItem *resultItem = ui->fileTableWidget->item(row, 2);
-        if (sourceItem and destItem and resultItem)
+        if (sourceItem && destItem && resultItem)
         {
             QString newName = getNewName(sourceItem->text(), row);
             destItem->setText(newName);
@@ -280,6 +320,9 @@ void Widget::on_clearFileButton_clicked()
 
 void Widget::on_normalRadioButton_clicked()
 {
+    if (isClearing)
+        return;
+    ui->regularHelperButton->hide();
     if (ui->outputLineEdit->validator())
     {
         delete ui->outputLineEdit->validator();
@@ -303,6 +346,9 @@ void Widget::showNormalReplaceTip()
 
 void Widget::on_regExpRadioButton_clicked()
 {
+    if (isClearing)
+        return;
+    ui->regularHelperButton->show();
     if (ui->outputLineEdit->validator())
     {
         delete ui->outputLineEdit->validator();
@@ -325,36 +371,48 @@ void Widget::showRegularReplaceTip()
 
 void Widget::on_addSuffixCheckBox_clicked()
 {
+    if (isClearing)
+        return;
     qDebug() << __func__;
     refreshData();
 }
 
 void Widget::on_modifySuffixCheckBox_clicked()
 {
+    if (isClearing)
+        return;
     qDebug() << __func__;
     refreshData();
 }
 
 void Widget::on_suffixLineEdit_textChanged(const QString &arg1)
 {
+    if (isClearing)
+        return;
     qDebug() << __func__ << ": " << arg1;
     refreshData();
 }
 
 void Widget::on_addIndexRuleLineEdit_textChanged(const QString &arg1)
 {
+    if (isClearing)
+        return;
     qDebug() << __func__ << ": " << arg1;
     refreshData();
 }
 
 void Widget::on_inputLineEdit_textChanged(const QString &arg1)
 {
+    if (isClearing)
+        return;
     qDebug() << __func__ << ": " << arg1;
     refreshData();
 }
 
 void Widget::on_outputLineEdit_textChanged(const QString &arg1)
 {
+    if (isClearing)
+        return;
     qDebug() << __func__ << ": " << arg1;
     refreshData();
 }
@@ -362,6 +420,8 @@ void Widget::on_outputLineEdit_textChanged(const QString &arg1)
 
 void Widget::on_startSpinBox_textChanged(const QString &arg1)
 {
+    if (isClearing)
+        return;
     qDebug() << __func__ << ": " << arg1;
     refreshData();
 }
@@ -369,6 +429,8 @@ void Widget::on_startSpinBox_textChanged(const QString &arg1)
 
 void Widget::on_stepSpinBox_textChanged(const QString &arg1)
 {
+    if (isClearing)
+        return;
     qDebug() << __func__ << ": " << arg1;
     refreshData();
 }
@@ -376,6 +438,8 @@ void Widget::on_stepSpinBox_textChanged(const QString &arg1)
 
 void Widget::on_numOfDigitSpinBox_textChanged(const QString &arg1)
 {
+    if (isClearing)
+        return;
     qDebug() << __func__ << ": " << arg1;
     refreshData();
 }
@@ -450,3 +514,71 @@ void Widget::insertToFileTable(QString& filePath)
         qDebug() << "insert file:" << filePath << " already exists, do nothing";
     }
 }
+
+void Widget::on_letterCaseComboBox_currentTextChanged(const QString &arg1)
+{
+    if (isClearing)
+        return;
+    qDebug() << __func__ << ": " << arg1;
+    refreshData();
+}
+
+
+void Widget::on_caseTargetComboBox_currentTextChanged(const QString &arg1)
+{
+    if (isClearing)
+        return;
+    qDebug() << __func__ << ": " << arg1;
+    refreshData();
+}
+
+
+void Widget::on_clearAllPlanButton_clicked()
+{
+    qDebug() << __func__;
+
+    isClearing = true;
+    ui->addIndexRuleLineEdit->clear();
+    ui->startSpinBox->setValue(1);
+    ui->stepSpinBox->setValue(1);
+    ui->numOfDigitSpinBox->setValue(1);
+
+    ui->addSuffixCheckBox->setCheckState(Qt::Unchecked);
+    ui->modifySuffixCheckBox->setCheckState(Qt::Unchecked);
+    ui->suffixLineEdit->clear();
+
+    replacePartInit();
+    ui->inputLineEdit->clear();
+    ui->outputLineEdit->clear();
+
+    if (ui->conflictComboBox->count() != 0)
+    {
+        ui->conflictComboBox->setCurrentIndex(0);
+    }
+    if (ui->letterCaseComboBox->count() != 0)
+    {
+        ui->letterCaseComboBox->setCurrentIndex(0);
+    }
+    if (ui->caseTargetComboBox->count() != 0)
+    {
+        ui->caseTargetComboBox->setCurrentIndex(0);
+    }
+    isClearing = false;
+    refreshData();
+}
+
+
+void Widget::on_regularHelperButton_clicked()
+{
+    qDebug() << __func__;
+    if (rHelper == nullptr)
+    {
+        rHelper = new regularHelper();
+        rHelper->show();
+    }
+    else
+    {
+        rHelper->show();
+    }
+}
+

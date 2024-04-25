@@ -22,8 +22,8 @@
   <widget class="QPushButton" name="renameButton">
    <property name="geometry">
     <rect>
-     <x>370</x>
-     <y>500</y>
+     <x>440</x>
+     <y>520</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -67,10 +67,10 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>40</x>
+     <x>30</x>
      <y>350</y>
-     <width>181</width>
-     <height>83</height>
+     <width>221</width>
+     <height>89</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -129,7 +129,7 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>250</x>
+     <x>270</x>
      <y>350</y>
      <width>176</width>
      <height>50</height>
@@ -301,13 +301,26 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QPushButton" name="clearAllPlanButton">
    <property name="geometry">
     <rect>
-     <x>39</x>
+     <x>490</x>
+     <y>310</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>清除所有方案</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="layoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
      <y>470</y>
-     <width>241</width>
-     <height>54</height>
+     <width>301</width>
+     <height>61</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -336,13 +349,13 @@
        <widget class="QComboBox" name="conflictComboBox">
         <property name="minimumSize">
          <size>
-          <width>150</width>
+          <width>205</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>150</width>
+          <width>205</width>
           <height>16777215</height>
          </size>
         </property>
@@ -356,18 +369,18 @@
        <widget class="QLabel" name="label_8">
         <property name="minimumSize">
          <size>
-          <width>80</width>
+          <width>20</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>80</width>
+          <width>20</width>
           <height>16777215</height>
          </size>
         </property>
         <property name="text">
-         <string>大小写转换</string>
+         <string>将</string>
         </property>
        </widget>
       </item>
@@ -375,13 +388,48 @@
        <widget class="QComboBox" name="letterCaseComboBox">
         <property name="minimumSize">
          <size>
-          <width>150</width>
+          <width>105</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>150</width>
+          <width>105</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_9">
+        <property name="minimumSize">
+         <size>
+          <width>45</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>45</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>应用到</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="caseTargetComboBox">
+        <property name="minimumSize">
+         <size>
+          <width>105</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>105</width>
           <height>16777215</height>
          </size>
         </property>
@@ -390,6 +438,31 @@
      </layout>
     </item>
    </layout>
+  </widget>
+  <widget class="QPushButton" name="regularHelperButton">
+   <property name="geometry">
+    <rect>
+     <x>140</x>
+     <y>330</y>
+     <width>23</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>23</width>
+     <height>23</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>23</width>
+     <height>23</height>
+    </size>
+   </property>
+   <property name="text">
+    <string>?</string>
+   </property>
   </widget>
  </widget>
  <resources/>

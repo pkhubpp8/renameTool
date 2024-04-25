@@ -12,6 +12,7 @@
 #include <QDropEvent>
 
 #include <set>
+#include "regularhelper.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -67,6 +68,14 @@ private slots:
 
     void on_rmFileButton_clicked();
 
+    void on_letterCaseComboBox_currentTextChanged(const QString &arg1);
+
+    void on_caseTargetComboBox_currentTextChanged(const QString &arg1);
+
+    void on_clearAllPlanButton_clicked();
+
+    void on_regularHelperButton_clicked();
+
 protected:
     void dragEnterEvent(QDragEnterEvent *event);
     void dropEvent(QDropEvent *event);
@@ -81,7 +90,9 @@ private:
     void insertToFileTable(QString& filePath);
 
     Ui::Widget *ui;
+    regularHelper *rHelper;
     bool isFirstRun_ = true;
     std::set<QString> observedFiles_;
+    bool isClearing = false;
 };
 #endif // WIDGET_H
