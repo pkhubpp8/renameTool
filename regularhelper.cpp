@@ -1,4 +1,4 @@
-#include "regularhelper.h"
+﻿#include "regularhelper.h"
 #include "ui_regularhelper.h"
 
 regularHelper::regularHelper(QWidget *parent)

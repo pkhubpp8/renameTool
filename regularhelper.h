@@ -1,4 +1,4 @@
-#ifndef REGULARHELPER_H
+﻿#ifndef REGULARHELPER_H
 #define REGULARHELPER_H
 
 #include <QWidget>

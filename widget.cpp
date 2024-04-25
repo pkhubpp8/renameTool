@@ -1,4 +1,4 @@
-#include <QMimeData>
+﻿#include <QMimeData>
 #include <QDebug>
 
 #include "widget.h"
