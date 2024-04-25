@@ -2,6 +2,7 @@
 Qt Creator 12.0.2
 Based on Qt 6.6.0 (MSVC 2019, x86_64)
 
-Built on Feb 6 2024 10:15:14
-
-From revision a0bd498b31
+或
+Microsoft Visual Studio Community 2022 (64 位) - Current
+版本 17.9.6
+/utf-8
